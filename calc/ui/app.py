@@ -11,6 +11,7 @@ from calc.core.history import HistoryStore
 from calc.ui.analysis_view import AnalysisView
 from calc.ui.basic_view import BasicView
 from calc.ui.financial_view import FinancialView
+from calc.ui.graph_view import GraphView
 from calc.ui.history_view import HistoryView
 from calc.ui.kpi_view import KPIView
 from calc.ui.scientific_view import ScientificView
@@ -88,6 +89,7 @@ def build_app() -> ttk.Window:
     notebook.add(scientific, text="공학용")
     notebook.add(analysis, text="분석")
     notebook.add(stats, text="통계")
+    notebook.add(GraphView(notebook), text="그래프")
     notebook.add(FinancialView(notebook), text="회계·재무")
     notebook.add(kpi, text="경영지표")
     notebook.add(unit, text="단위환산")
