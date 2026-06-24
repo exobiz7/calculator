@@ -1,5 +1,6 @@
 # Runtime:
 ttkbootstrap>=1.10  # themed Tk widgets (Claude-branded light/dark theme)
+matplotlib>=3.7     # graphing mode (그래프 탭); optional — mode disables if missing
 # tkinter ships with Python.
 
 # Development / testing:
