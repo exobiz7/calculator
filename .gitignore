@@ -12,3 +12,6 @@ venv/
 
 # Notebook checkpoints
 .ipynb_checkpoints/
+
+# Editor workspace settings (machine-specific)
+.vscode/
