@@ -7,8 +7,10 @@ import tkinter as tk
 
 import ttkbootstrap as ttk
 
+from calc.core.history import HistoryStore
 from calc.ui.basic_view import BasicView
 from calc.ui.financial_view import FinancialView
+from calc.ui.history_view import HistoryView
 from calc.ui.scientific_view import ScientificView
 from calc.ui.theme import (
     DARK,
@@ -51,11 +53,36 @@ def build_app() -> ttk.Window:
 
     theme_btn.configure(command=toggle_theme)
 
+    history = HistoryStore()
+
     notebook = ttk.Notebook(app)
-    notebook.add(BasicView(notebook), text="기본")
-    notebook.add(ScientificView(notebook), text="공학용")
+    basic = BasicView(
+        notebook, on_record=lambda expr, res: history.record("기본", expr, res)
+    )
+    scientific = ScientificView(
+        notebook, on_record=lambda expr, res: history.record("공학용", expr, res)
+    )
+    notebook.add(basic, text="기본")
+    notebook.add(scientific, text="공학용")
     notebook.add(FinancialView(notebook), text="회계·재무")
+
+    # History tab: re-load a past calculation into its mode.
+    tab_index = {"기본": 0, "공학용": 1}
+
+    def load_entry(entry) -> None:
+        # Basic-mode expressions are re-loaded into the scientific entry field.
+        scientific.load_expression(entry)
+        notebook.select(tab_index["공학용"])
+
+    history_view = HistoryView(notebook, store=history, on_load=load_entry)
+    notebook.add(history_view, text="기록")
     notebook.pack(fill="both", expand=True, padx=8, pady=8)
+
+    def on_tab_changed(event: tk.Event) -> None:
+        if notebook.nametowidget(notebook.select()) is history_view:
+            history_view.refresh()
+
+    notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
 
     def dispatch_key(event: tk.Event) -> None:
         current = notebook.nametowidget(notebook.select())
