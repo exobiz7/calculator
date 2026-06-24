@@ -14,6 +14,7 @@ from calc.ui.financial_view import FinancialView
 from calc.ui.history_view import HistoryView
 from calc.ui.kpi_view import KPIView
 from calc.ui.scientific_view import ScientificView
+from calc.ui.stats_view import StatsView
 from calc.ui.unit_view import UnitView
 from calc.ui.theme import (
     DARK,
@@ -79,9 +80,14 @@ def build_app() -> ttk.Window:
         notebook,
         on_record=lambda expr, res, inputs: history.record("분석", expr, res, inputs),
     )
+    stats = StatsView(
+        notebook,
+        on_record=lambda expr, res, inputs: history.record("통계", expr, res, inputs),
+    )
     notebook.add(basic, text="기본")
     notebook.add(scientific, text="공학용")
     notebook.add(analysis, text="분석")
+    notebook.add(stats, text="통계")
     notebook.add(FinancialView(notebook), text="회계·재무")
     notebook.add(kpi, text="경영지표")
     notebook.add(unit, text="단위환산")
@@ -97,6 +103,9 @@ def build_app() -> ttk.Window:
         elif entry.mode == "분석":
             analysis.load(entry)
             notebook.select(analysis)
+        elif entry.mode == "통계":
+            stats.load(entry)
+            notebook.select(stats)
         else:
             # Basic/scientific expressions re-load into the scientific entry field.
             scientific.load_expression(entry)
