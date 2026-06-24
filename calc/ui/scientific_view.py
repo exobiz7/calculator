@@ -4,6 +4,7 @@ import tkinter as tk
 
 import ttkbootstrap as ttk
 
+from calc.core.numfmt import MODES, format_value
 from calc.modes.basic import format_number
 from calc.modes.scientific import ScientificEngine
 from calc.ui.basic_view import EQ, FUNC, NUM, OP, UTIL
@@ -19,7 +20,10 @@ class ScientificView(ttk.Frame):
         self._expr_var = tk.StringVar(value="")
         self._result_var = tk.StringVar(value="0")
         self._angle_var = tk.StringVar(value=self.engine.angle)
+        self._fmt_var = tk.StringVar(value="자동")
         self._build()
+        # Live result: re-evaluate (without recording) as the expression changes.
+        self._expr_var.trace_add("write", self._on_expr_change)
 
     def load_expression(self, entry) -> None:
         """Populate the entry field from a history entry (for re-use)."""
@@ -36,6 +40,17 @@ class ScientificView(ttk.Frame):
             bootstyle="info",
             command=self._toggle_angle,
         ).pack(side="left")
+        fmt = ttk.Combobox(
+            top, textvariable=self._fmt_var, values=MODES, state="readonly", width=6
+        )
+        fmt.pack(side="left", padx=(6, 0))
+        fmt.bind("<<ComboboxSelected>>", lambda e: self._show_result())
+        ttk.Button(
+            top, text="복사", width=4, bootstyle=SEC, command=self._copy_result
+        ).pack(side="left", padx=(6, 0))
+        ttk.Button(
+            top, text="식복사", width=5, bootstyle=SEC, command=self._copy_expr
+        ).pack(side="left", padx=(2, 0))
         ttk.Label(
             top,
             textvariable=self._result_var,
@@ -131,13 +146,43 @@ class ScientificView(ttk.Frame):
 
     def _toggle_angle(self) -> None:
         self._angle_var.set(self.engine.toggle_angle())
+        self._compute(record=False)
+
+    def _show_result(self) -> None:
+        if self.engine.error or not self._expr_var.get().strip():
+            self._result_var.set("")  # silent while typing / empty
+        else:
+            self._result_var.set(
+                format_value(self.engine.last_answer, self._fmt_var.get())
+            )
+
+    def _compute(self, record: bool) -> None:
+        self.engine.expression = self._expr_var.get()
+        self.engine.evaluate()
+        self._show_result()
+        if (
+            record
+            and self._on_record
+            and not self.engine.error
+            and self.engine.expression.strip()
+        ):
+            self._on_record(self.engine.expression, self._result_var.get())
+
+    def _on_expr_change(self, *args) -> None:
+        self._compute(record=False)
 
     def _evaluate(self) -> None:
-        self.engine.expression = self._expr_var.get()
-        result = self.engine.evaluate()
-        self._result_var.set(result)
-        if self._on_record and not self.engine.error and self.engine.expression.strip():
-            self._on_record(self.engine.expression, result)
+        self._compute(record=True)
+        if self.engine.error and self._expr_var.get().strip():
+            self._result_var.set("Error")  # explicit "=" surfaces the error
+
+    def _copy_result(self) -> None:
+        self.clipboard_clear()
+        self.clipboard_append(self._result_var.get())
+
+    def _copy_expr(self) -> None:
+        self.clipboard_clear()
+        self.clipboard_append(self._expr_var.get())
 
     def on_key(self, event: tk.Event) -> None:
         if event.keysym in ("Return", "KP_Enter"):

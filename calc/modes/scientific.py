@@ -2,13 +2,17 @@
 
 Unlike the immediate-execution basic engine, the scientific mode builds a full
 expression string (with parentheses and functions) and evaluates it at once via
-:mod:`calc.core.expr`. Angle mode (DEG/RAD) is carried here.
+:mod:`calc.core.expr`. Angle mode (DEG/RAD), the previous answer (Ans), and user
+variables (e.g. ``A = 3+4``) are carried here.
 """
 
-from calc.core.expr import safe_eval
+import re
+
+from calc.core.expr import _CONSTANTS, safe_eval
 from calc.modes.basic import format_number
 
 VALID_ANGLES = ("RAD", "DEG")
+_ASSIGN = re.compile(r"^\s*([A-Za-z]\w*)\s*=\s*(.+)$")
 
 
 class ScientificEngine:
@@ -18,6 +22,7 @@ class ScientificEngine:
         self.angle = "RAD"
         self.last_answer = 0.0
         self.error = False
+        self.variables: dict[str, float] = {}
 
     # --- expression editing --------------------------------------------
     def insert(self, token: str) -> None:
@@ -42,11 +47,27 @@ class ScientificEngine:
         return self.angle
 
     # --- evaluation -----------------------------------------------------
+    def _scope(self) -> dict:
+        return {**self.variables, "Ans": self.last_answer, "ans": self.last_answer}
+
     def evaluate(self) -> str:
+        text = self.expression.strip()
+        assign = _ASSIGN.match(text)
+        # Treat as assignment only for "name = rhs" (not "==" comparisons).
+        if assign and not text.lstrip().startswith("=") and "==" not in text:
+            name, rhs = assign.group(1), assign.group(2)
+            if name in _CONSTANTS:
+                self.result, self.error = "Error", True
+                return self.result
+            expr = rhs
+        else:
+            name, expr = None, text
         try:
-            value = safe_eval(self.expression, self.angle)
-            self.result = format_number(float(value))
-            self.last_answer = float(value)
+            value = float(safe_eval(expr, self.angle, variables=self._scope()))
+            self.last_answer = value
+            if name is not None:
+                self.variables[name] = value
+            self.result = format_number(value)
             self.error = self.result == "Error"
         except (ValueError, ZeroDivisionError, OverflowError):
             self.result = "Error"

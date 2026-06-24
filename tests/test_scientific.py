@@ -1,4 +1,3 @@
-
 from calc.modes.scientific import ScientificEngine
 
 
@@ -36,3 +35,26 @@ def test_use_answer():
     eng.use_answer()
     eng.insert("+5")
     assert eng.evaluate() == "15"
+
+
+def test_ans_token():
+    eng = ScientificEngine()
+    eng.expression = "6 * 7"
+    eng.evaluate()
+    eng.expression = "Ans + 8"
+    assert eng.evaluate() == "50"
+
+
+def test_variable_assignment_and_use():
+    eng = ScientificEngine()
+    eng.expression = "A = 3 + 4"
+    assert eng.evaluate() == "7"
+    assert eng.variables["A"] == 7
+    eng.expression = "A * 2"
+    assert eng.evaluate() == "14"
+
+
+def test_cannot_assign_to_constant():
+    eng = ScientificEngine()
+    eng.expression = "pi = 3"
+    assert eng.evaluate() == "Error"
