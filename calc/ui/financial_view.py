@@ -5,7 +5,8 @@ amortization table, and a proportion (ratio) solver.
 """
 
 import tkinter as tk
-from tkinter import ttk
+
+import ttkbootstrap as ttk
 
 from calc.core import ratio
 from calc.modes import financial as fin
@@ -45,7 +46,7 @@ class FinancialView(ttk.Frame):
         amount = _labeled_entry(f, "금액", 0)
         rate = _labeled_entry(f, "세율(%)", 1, str(fin.DEFAULT_VAT_RATE))
         result = tk.StringVar(value="")
-        ttk.Label(f, textvariable=result, foreground="#0a7").grid(
+        ttk.Label(f, textvariable=result, bootstyle="success").grid(
             row=4, column=0, columnspan=2, sticky="w", pady=(8, 0)
         )
 
@@ -54,11 +55,13 @@ class FinancialView(ttk.Frame):
 
         ttk.Button(
             f,
+            bootstyle="primary",
             text="공급가 → 합계 (TAX+)",
             command=lambda: show(fin.add_vat(_to_float(amount), _to_float(rate))),
         ).grid(row=2, column=0, columnspan=2, sticky="we", pady=2)
         ttk.Button(
             f,
+            bootstyle="primary",
             text="합계 → 공급가 (TAX−)",
             command=lambda: show(fin.remove_vat(_to_float(amount), _to_float(rate))),
         ).grid(row=3, column=0, columnspan=2, sticky="we", pady=2)
@@ -72,12 +75,13 @@ class FinancialView(ttk.Frame):
         sell = _labeled_entry(f, "판매가", 1)
         rate = _labeled_entry(f, "율(%)", 2)
         result = tk.StringVar(value="")
-        ttk.Label(f, textvariable=result, foreground="#0a7", wraplength=240).grid(
+        ttk.Label(f, textvariable=result, bootstyle="success", wraplength=240).grid(
             row=7, column=0, columnspan=2, sticky="w", pady=(8, 0)
         )
 
         ttk.Button(
             f,
+            bootstyle="primary",
             text="판매가 = 원가+마진율",
             command=lambda: result.set(
                 f"판매가 {fin.sell_from_cost_margin(_to_float(cost), _to_float(rate)):,}"
@@ -85,6 +89,7 @@ class FinancialView(ttk.Frame):
         ).grid(row=3, column=0, columnspan=2, sticky="we", pady=2)
         ttk.Button(
             f,
+            bootstyle="primary",
             text="판매가 = 원가+마크업율",
             command=lambda: result.set(
                 f"판매가 {fin.sell_from_cost_markup(_to_float(cost), _to_float(rate)):,}"
@@ -92,6 +97,7 @@ class FinancialView(ttk.Frame):
         ).grid(row=4, column=0, columnspan=2, sticky="we", pady=2)
         ttk.Button(
             f,
+            bootstyle="primary",
             text="마진율 (원가,판매가)",
             command=lambda: result.set(
                 f"마진율 {fin.margin_rate(_to_float(cost), _to_float(sell)):.2f}%  /  "
@@ -100,6 +106,7 @@ class FinancialView(ttk.Frame):
         ).grid(row=5, column=0, columnspan=2, sticky="we", pady=2)
         ttk.Button(
             f,
+            bootstyle="primary",
             text="할인가 (판매가 − 율%)",
             command=lambda: result.set(
                 f"할인가 {fin.apply_discount(_to_float(sell), _to_float(rate)):,}"
@@ -117,7 +124,7 @@ class FinancialView(ttk.Frame):
         pmt = _labeled_entry(f, "PMT", 3)
         fv = _labeled_entry(f, "FV", 4)
         result = tk.StringVar(value="부호 규약: 유출(-) / 유입(+)")
-        ttk.Label(f, textvariable=result, foreground="#0a7", wraplength=240).grid(
+        ttk.Label(f, textvariable=result, bootstyle="success", wraplength=240).grid(
             row=7, column=0, columnspan=3, sticky="w", pady=(8, 0)
         )
 
@@ -153,9 +160,9 @@ class FinancialView(ttk.Frame):
                 result.set(f"오류: {e}")
 
         for c, t in enumerate(["n", "i", "PV", "PMT", "FV"]):
-            ttk.Button(f, text=f"{t} 계산", command=lambda t=t: solve(t)).grid(
-                row=5 + c // 3, column=c % 3, sticky="we", pady=2, padx=1
-            )
+            ttk.Button(
+                f, bootstyle="primary", text=f"{t} 계산", command=lambda t=t: solve(t)
+            ).grid(row=5 + c // 3, column=c % 3, sticky="we", pady=2, padx=1)
         f.columnconfigure(1, weight=1)
         return f
 
@@ -166,7 +173,7 @@ class FinancialView(ttk.Frame):
         rate = _labeled_entry(f, "연이율(%)", 1)
         months = _labeled_entry(f, "개월", 2)
         summary = tk.StringVar(value="")
-        ttk.Label(f, textvariable=summary, foreground="#0a7").grid(
+        ttk.Label(f, textvariable=summary, bootstyle="success").grid(
             row=4, column=0, columnspan=2, sticky="w"
         )
 
@@ -202,7 +209,7 @@ class FinancialView(ttk.Frame):
                 )
             summary.set(f"월 납입금 {rows[0].payment:,}   총이자 {total_interest:,}")
 
-        ttk.Button(f, text="상환표 계산", command=compute).grid(
+        ttk.Button(f, bootstyle="primary", text="상환표 계산", command=compute).grid(
             row=3, column=0, columnspan=2, sticky="we", pady=4
         )
         f.columnconfigure(1, weight=1)
@@ -221,7 +228,7 @@ class FinancialView(ttk.Frame):
         b = _labeled_entry(f, "b", 2)
         x = _labeled_entry(f, "x", 3)
         simple_result = tk.StringVar(value="")
-        ttk.Label(f, textvariable=simple_result, foreground="#0a7").grid(
+        ttk.Label(f, textvariable=simple_result, bootstyle="success").grid(
             row=5, column=0, columnspan=2, sticky="w"
         )
 
@@ -232,7 +239,7 @@ class FinancialView(ttk.Frame):
             except ValueError as e:
                 simple_result.set(f"오류: {e}")
 
-        ttk.Button(f, text="y 계산", command=solve_simple).grid(
+        ttk.Button(f, bootstyle="primary", text="y 계산", command=solve_simple).grid(
             row=4, column=0, columnspan=2, sticky="we", pady=2
         )
 
@@ -249,7 +256,7 @@ class FinancialView(ttk.Frame):
         tc = _labeled_entry(f, "c", 10)
         tx = _labeled_entry(f, "x", 11)
         triple_result = tk.StringVar(value="")
-        ttk.Label(f, textvariable=triple_result, foreground="#0a7").grid(
+        ttk.Label(f, textvariable=triple_result, bootstyle="success").grid(
             row=13, column=0, columnspan=2, sticky="w"
         )
 
@@ -262,7 +269,7 @@ class FinancialView(ttk.Frame):
             except ValueError as e:
                 triple_result.set(f"오류: {e}")
 
-        ttk.Button(f, text="y, z 계산", command=solve_triple).grid(
+        ttk.Button(f, bootstyle="primary", text="y, z 계산", command=solve_triple).grid(
             row=12, column=0, columnspan=2, sticky="we", pady=2
         )
         f.columnconfigure(1, weight=1)
