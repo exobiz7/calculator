@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from calc.ui.basic_view import BasicView
+from calc.ui.financial_view import FinancialView
 from calc.ui.scientific_view import ScientificView
 
 
@@ -15,7 +16,7 @@ def build_app() -> tk.Tk:
     notebook = ttk.Notebook(root)
     notebook.add(BasicView(notebook), text="기본")
     notebook.add(ScientificView(notebook), text="공학용")
-    # 회계·재무 탭은 후속 단계에서 추가됩니다.
+    notebook.add(FinancialView(notebook), text="회계·재무")
     notebook.pack(fill="both", expand=True)
 
     def dispatch_key(event: tk.Event) -> None:
