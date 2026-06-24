@@ -60,11 +60,19 @@ def _build_functions(angle: str) -> dict:
     }
 
 
-def safe_eval(expression: str, angle: str = "RAD") -> float:
-    """Evaluate a math expression. Raises ValueError on anything unsupported."""
+def safe_eval(
+    expression: str, angle: str = "RAD", variables: dict | None = None
+) -> float:
+    """Evaluate a math expression. Raises ValueError on anything unsupported.
+
+    ``variables`` maps names to numbers, resolved after the built-in constants.
+    This is the shared, sandboxed evaluator for the scientific, KPI, and (future)
+    AI-formula modes — model-proposed formulas are run here, never via ``exec``.
+    """
     text = expression.strip()
     if not text:
         raise ValueError("empty expression")
+    variables = variables or {}
     for bad, good in _NORMALIZE.items():
         text = text.replace(bad, good)
 
@@ -84,6 +92,8 @@ def safe_eval(expression: str, angle: str = "RAD") -> float:
         if isinstance(node, ast.Name):
             if node.id in _CONSTANTS:
                 return _CONSTANTS[node.id]
+            if node.id in variables:
+                return variables[node.id]
             raise ValueError(f"unknown name: {node.id}")
         if isinstance(node, ast.Call):
             if not isinstance(node.func, ast.Name) or node.func.id not in funcs:
@@ -96,4 +106,7 @@ def safe_eval(expression: str, angle: str = "RAD") -> float:
         tree = ast.parse(text, mode="eval")
     except SyntaxError as exc:
         raise ValueError("invalid expression") from exc
-    return _eval(tree)
+    try:
+        return _eval(tree)
+    except (ZeroDivisionError, OverflowError) as exc:
+        raise ValueError(str(exc) or "math error") from exc

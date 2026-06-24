@@ -11,6 +11,7 @@ from calc.core.history import HistoryStore
 from calc.ui.basic_view import BasicView
 from calc.ui.financial_view import FinancialView
 from calc.ui.history_view import HistoryView
+from calc.ui.kpi_view import KPIView
 from calc.ui.scientific_view import ScientificView
 from calc.ui.theme import (
     DARK,
@@ -62,17 +63,24 @@ def build_app() -> ttk.Window:
     scientific = ScientificView(
         notebook, on_record=lambda expr, res: history.record("공학용", expr, res)
     )
+    kpi = KPIView(
+        notebook,
+        on_record=lambda key, res, inputs: history.record("경영지표", key, res, inputs),
+    )
     notebook.add(basic, text="기본")
     notebook.add(scientific, text="공학용")
     notebook.add(FinancialView(notebook), text="회계·재무")
+    notebook.add(kpi, text="경영지표")
 
     # History tab: re-load a past calculation into its mode.
-    tab_index = {"기본": 0, "공학용": 1}
-
     def load_entry(entry) -> None:
-        # Basic-mode expressions are re-loaded into the scientific entry field.
-        scientific.load_expression(entry)
-        notebook.select(tab_index["공학용"])
+        if entry.mode == "경영지표":
+            kpi.load(entry)
+            notebook.select(kpi)
+        else:
+            # Basic/scientific expressions re-load into the scientific entry field.
+            scientific.load_expression(entry)
+            notebook.select(scientific)
 
     history_view = HistoryView(notebook, store=history, on_load=load_entry)
     notebook.add(history_view, text="기록")

@@ -5,6 +5,17 @@ import pytest
 from calc.core.expr import safe_eval
 
 
+def test_variables():
+    assert safe_eval("a / b * 100", variables={"a": 100, "b": 500}) == pytest.approx(20)
+    assert safe_eval("price - cost", variables={"price": 5000, "cost": 3000}) == 2000
+    # unknown variable still rejected
+    with pytest.raises(ValueError):
+        safe_eval("a + missing", variables={"a": 1})
+    # no variables passed -> names rejected as before (backward compatible)
+    with pytest.raises(ValueError):
+        safe_eval("a + 1")
+
+
 def test_arithmetic_and_precedence():
     assert safe_eval("2 + 3 * 4") == 14
     assert safe_eval("(2 + 3) * 4") == 20
