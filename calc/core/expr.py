@@ -8,6 +8,7 @@ Trigonometric functions honor the angle mode ("DEG" or "RAD").
 import ast
 import math
 import operator
+import re
 
 _BINOPS = {
     ast.Add: operator.add,
@@ -18,7 +19,12 @@ _BINOPS = {
     ast.Mod: operator.mod,
 }
 _UNARY = {ast.UAdd: operator.pos, ast.USub: operator.neg}
-_CONSTANTS = {"pi": math.pi, "e": math.e, "tau": math.tau}
+_CONSTANTS = {"pi": math.pi, "e": math.e, "tau": math.tau, "phi": (1 + 5**0.5) / 2}
+
+# Postfix percent: a value immediately followed by an operator/paren/end
+# (e.g. "25%", "(15+2.6)%") becomes "/100". A "%" between two operands stays
+# modulo (use mod() for an explicit modulo as well).
+_PERCENT = re.compile(r"%(?=\s*(?:[)+\-*/]|$))")
 
 # Unicode operators users might type, normalized to Python syntax.
 _NORMALIZE = {"×": "*", "÷": "/", "−": "-", "^": "**", "π": "pi", "√": "sqrt"}
@@ -28,6 +34,32 @@ def _factorial(x: float) -> int:
     if x < 0 or x != int(x):
         raise ValueError("factorial requires a non-negative integer")
     return math.factorial(int(x))
+
+
+def _as_int(x: float, what: str) -> int:
+    if x != int(x):
+        raise ValueError(f"{what} requires an integer")
+    return int(x)
+
+
+def _perm(n: float, r: float) -> int:
+    return math.perm(_as_int(n, "nPr"), _as_int(r, "nPr"))
+
+
+def _comb(n: float, r: float) -> int:
+    return math.comb(_as_int(n, "nCr"), _as_int(r, "nCr"))
+
+
+def _gcd(a: float, b: float) -> int:
+    return math.gcd(_as_int(a, "gcd"), _as_int(b, "gcd"))
+
+
+def _lcm(a: float, b: float) -> int:
+    return math.lcm(_as_int(a, "lcm"), _as_int(b, "lcm"))
+
+
+def _sign(x: float) -> float:
+    return (x > 0) - (x < 0)
 
 
 def _build_functions(angle: str) -> dict:
@@ -57,6 +89,24 @@ def _build_functions(angle: str) -> dict:
         "floor": math.floor,
         "ceil": math.ceil,
         "round": round,
+        # hyperbolic + inverse hyperbolic
+        "sinh": math.sinh,
+        "cosh": math.cosh,
+        "tanh": math.tanh,
+        "asinh": math.asinh,
+        "acosh": math.acosh,
+        "atanh": math.atanh,
+        # misc
+        "logb": math.log,  # logb(x, base)
+        "nPr": _perm,
+        "nCr": _comb,
+        "gcd": _gcd,
+        "lcm": _lcm,
+        "sign": _sign,
+        "hypot": math.hypot,
+        "mod": math.fmod,
+        "deg": math.degrees,
+        "rad": math.radians,
     }
 
 
@@ -75,6 +125,7 @@ def safe_eval(
     variables = variables or {}
     for bad, good in _NORMALIZE.items():
         text = text.replace(bad, good)
+    text = _PERCENT.sub("/100", text)
 
     funcs = _build_functions(angle)
 

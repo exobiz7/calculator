@@ -44,18 +44,30 @@ class HistoryView(ttk.Frame):
 
     def refresh(self) -> None:
         self.tree.delete(*self.tree.get_children())
+        self.tree.tag_configure("date", background="", foreground="#888")
         self._entries = self.store.recent()
+        last_date = None
         for i, e in enumerate(self._entries):
-            ts = e.timestamp.replace("T", " ")
+            date = e.timestamp[:10]
+            if date != last_date:
+                self.tree.insert(
+                    "",
+                    "end",
+                    iid=f"d{date}",
+                    tags=("date",),
+                    values=(f"── {date} ──", "", "", ""),
+                )
+                last_date = date
+            time = e.timestamp[11:19]  # date shown in the group header
             self.tree.insert(
-                "", "end", iid=str(i), values=(ts, e.mode, e.expression, e.result)
+                "", "end", iid=f"e{i}", values=(time, e.mode, e.expression, e.result)
             )
 
     def _selected_entry(self):
         sel = self.tree.selection()
-        if not sel:
-            return None
-        return self._entries[int(sel[0])]
+        if not sel or not sel[0].startswith("e"):
+            return None  # ignore date-header rows
+        return self._entries[int(sel[0][1:])]
 
     def _load_selected(self) -> None:
         entry = self._selected_entry()

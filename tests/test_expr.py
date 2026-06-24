@@ -16,6 +16,33 @@ def test_variables():
         safe_eval("a + 1")
 
 
+def test_new_functions():
+    assert safe_eval("sinh(0)") == 0
+    assert safe_eval("cosh(0)") == 1
+    assert safe_eval("atanh(0)") == 0
+    assert safe_eval("logb(8, 2)") == pytest.approx(3)
+    assert safe_eval("nPr(5, 2)") == 20
+    assert safe_eval("nCr(5, 2)") == 10
+    assert safe_eval("gcd(12, 18)") == 6
+    assert safe_eval("lcm(4, 6)") == 12
+    assert safe_eval("sign(-3)") == -1
+    assert safe_eval("hypot(3, 4)") == 5
+    assert safe_eval("mod(7, 3)") == pytest.approx(1)
+    assert safe_eval("deg(pi)", angle="RAD") == pytest.approx(180)
+
+
+def test_phi_constant():
+    assert safe_eval("phi") == pytest.approx(1.6180339887, abs=1e-9)
+
+
+def test_percent_postfix():
+    assert safe_eval("25%") == pytest.approx(0.25)
+    assert safe_eval("200 + 10%") == pytest.approx(200.1)  # simple form: 10% = 0.1
+    assert safe_eval("(15 + 2.6)%") == pytest.approx(0.176)
+    # modulo (% between operands) still works
+    assert safe_eval("7 % 3") == 1
+
+
 def test_arithmetic_and_precedence():
     assert safe_eval("2 + 3 * 4") == 14
     assert safe_eval("(2 + 3) * 4") == 20
