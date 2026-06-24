@@ -8,6 +8,7 @@ import tkinter as tk
 import ttkbootstrap as ttk
 
 from calc.core.history import HistoryStore
+from calc.ui.analysis_view import AnalysisView
 from calc.ui.basic_view import BasicView
 from calc.ui.financial_view import FinancialView
 from calc.ui.history_view import HistoryView
@@ -74,8 +75,13 @@ def build_app() -> ttk.Window:
             "단위환산", expr, res, inputs
         ),
     )
+    analysis = AnalysisView(
+        notebook,
+        on_record=lambda expr, res, inputs: history.record("분석", expr, res, inputs),
+    )
     notebook.add(basic, text="기본")
     notebook.add(scientific, text="공학용")
+    notebook.add(analysis, text="분석")
     notebook.add(FinancialView(notebook), text="회계·재무")
     notebook.add(kpi, text="경영지표")
     notebook.add(unit, text="단위환산")
@@ -88,6 +94,9 @@ def build_app() -> ttk.Window:
         elif entry.mode == "단위환산":
             unit.load(entry)
             notebook.select(unit)
+        elif entry.mode == "분석":
+            analysis.load(entry)
+            notebook.select(analysis)
         else:
             # Basic/scientific expressions re-load into the scientific entry field.
             scientific.load_expression(entry)
