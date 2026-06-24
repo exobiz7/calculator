@@ -1,4 +1,3 @@
-import pytest
 
 from calc.modes.scientific import ScientificEngine
 
@@ -37,9 +36,3 @@ def test_use_answer():
     eng.use_answer()
     eng.insert("+5")
     assert eng.evaluate() == "15"
-
-
-def test_proportion_helpers():
-    eng = ScientificEngine()
-    assert eng.solve_proportion(2, 3, 4) == pytest.approx(6)
-    assert eng.solve_triple(1, 2, 3, 5) == pytest.approx((10, 15))

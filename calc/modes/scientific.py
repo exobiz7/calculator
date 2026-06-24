@@ -5,7 +5,6 @@ expression string (with parentheses and functions) and evaluates it at once via
 :mod:`calc.core.expr`. Angle mode (DEG/RAD) is carried here.
 """
 
-from calc.core import ratio
 from calc.core.expr import safe_eval
 from calc.modes.basic import format_number
 
@@ -57,14 +56,3 @@ class ScientificEngine:
     def use_answer(self) -> None:
         """Insert the previous answer into the expression."""
         self.insert(format_number(self.last_answer))
-
-    # --- bonus: proportion helper --------------------------------------
-    @staticmethod
-    def solve_proportion(a: float, b: float, x: float) -> float:
-        """a : b = x : ?  ->  y"""
-        return ratio.solve_simple(a, b, x)
-
-    @staticmethod
-    def solve_triple(a: float, b: float, c: float, x: float) -> tuple[float, float]:
-        """a : b : c = x : ? : ?  ->  (y, z)"""
-        return ratio.solve_triple(a, b, c, x)
