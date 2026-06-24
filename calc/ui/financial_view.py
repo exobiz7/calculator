@@ -1,12 +1,13 @@
 """Tkinter view for the financial / accounting mode.
 
-Organized as an inner notebook: VAT, margin/discount, TVM, and a loan
-amortization table.
+Organized as an inner notebook: VAT, margin/discount, TVM, a loan
+amortization table, and a proportion (ratio) solver.
 """
 
 import tkinter as tk
 from tkinter import ttk
 
+from calc.core import ratio
 from calc.modes import financial as fin
 
 
@@ -32,6 +33,7 @@ class FinancialView(ttk.Frame):
         inner.add(self._margin_tab(inner), text="마진·할인")
         inner.add(self._tvm_tab(inner), text="TVM")
         inner.add(self._amort_tab(inner), text="상환표")
+        inner.add(self._ratio_tab(inner), text="비례식")
         inner.pack(fill="both", expand=True)
 
     def on_key(self, event: tk.Event) -> None:  # entries handle their own input
@@ -205,4 +207,63 @@ class FinancialView(ttk.Frame):
         )
         f.columnconfigure(1, weight=1)
         f.rowconfigure(5, weight=1)
+        return f
+
+    # --- proportion (ratio) --------------------------------------------
+    def _ratio_tab(self, parent):
+        f = ttk.Frame(parent, padding=8)
+
+        # a : b = x : y
+        ttk.Label(f, text="a : b = x : y").grid(
+            row=0, column=0, columnspan=2, sticky="w"
+        )
+        a = _labeled_entry(f, "a", 1)
+        b = _labeled_entry(f, "b", 2)
+        x = _labeled_entry(f, "x", 3)
+        simple_result = tk.StringVar(value="")
+        ttk.Label(f, textvariable=simple_result, foreground="#0a7").grid(
+            row=5, column=0, columnspan=2, sticky="w"
+        )
+
+        def solve_simple():
+            try:
+                y = ratio.solve_simple(_to_float(a), _to_float(b), _to_float(x))
+                simple_result.set(f"y = {y:g}")
+            except ValueError as e:
+                simple_result.set(f"오류: {e}")
+
+        ttk.Button(f, text="y 계산", command=solve_simple).grid(
+            row=4, column=0, columnspan=2, sticky="we", pady=2
+        )
+
+        ttk.Separator(f, orient="horizontal").grid(
+            row=6, column=0, columnspan=2, sticky="we", pady=8
+        )
+
+        # a : b : c = x : y : z
+        ttk.Label(f, text="a : b : c = x : y : z").grid(
+            row=7, column=0, columnspan=2, sticky="w"
+        )
+        ta = _labeled_entry(f, "a", 8)
+        tb = _labeled_entry(f, "b", 9)
+        tc = _labeled_entry(f, "c", 10)
+        tx = _labeled_entry(f, "x", 11)
+        triple_result = tk.StringVar(value="")
+        ttk.Label(f, textvariable=triple_result, foreground="#0a7").grid(
+            row=13, column=0, columnspan=2, sticky="w"
+        )
+
+        def solve_triple():
+            try:
+                y, z = ratio.solve_triple(
+                    _to_float(ta), _to_float(tb), _to_float(tc), _to_float(tx)
+                )
+                triple_result.set(f"y = {y:g},  z = {z:g}")
+            except ValueError as e:
+                triple_result.set(f"오류: {e}")
+
+        ttk.Button(f, text="y, z 계산", command=solve_triple).grid(
+            row=12, column=0, columnspan=2, sticky="we", pady=2
+        )
+        f.columnconfigure(1, weight=1)
         return f
