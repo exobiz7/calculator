@@ -10,13 +10,20 @@ import ttkbootstrap as ttk
 from calc.ui.basic_view import BasicView
 from calc.ui.financial_view import FinancialView
 from calc.ui.scientific_view import ScientificView
-from calc.ui.theme import DARK, LIGHT, configure_fonts, register_themes
+from calc.ui.theme import (
+    DARK,
+    LIGHT,
+    apply_overrides,
+    configure_fonts,
+    register_themes,
+)
 
 
 def build_app() -> ttk.Window:
     app = ttk.Window(themename="litera")
     register_themes(app.style)
     app.style.theme_use(LIGHT)
+    apply_overrides(app.style)
     configure_fonts(app)
     app.title("실무 계산기")
     app.minsize(360, 520)
@@ -40,6 +47,7 @@ def build_app() -> ttk.Window:
         else:
             app.style.theme_use(LIGHT)
             theme_btn.configure(text="🌙 다크")
+        apply_overrides(app.style)
 
     theme_btn.configure(command=toggle_theme)
 

@@ -58,6 +58,22 @@ def register_themes(style) -> None:
         style.register_theme(ThemeDefinition(DARK, _DARK_COLORS, "dark"))
 
 
+def apply_overrides(style) -> None:
+    """Re-apply custom style tweaks after a theme change.
+
+    Notably fixes the notebook tab text: ttkbootstrap colors the selected tab
+    with ``selectfg`` (dark), which is invisible on the dark theme's tab
+    background. Use the clay accent for the active tab so it reads on both
+    themes, and a muted gray for inactive tabs.
+    """
+    c = style.colors
+    style.configure("TNotebook.Tab", padding=(12, 6))
+    style.map(
+        "TNotebook.Tab",
+        foreground=[("selected", c.primary), ("!selected", c.secondary)],
+    )
+
+
 def configure_fonts(root) -> None:
     """Bump default font sizes for a calmer, more readable layout."""
     import tkinter.font as tkfont
