@@ -1,3 +1,6 @@
-# Runtime: standard library only (tkinter ships with Python).
+# Runtime:
+ttkbootstrap>=1.10  # themed Tk widgets (Claude-branded light/dark theme)
+# tkinter ships with Python.
+
 # Development / testing:
 pytest>=8.0
