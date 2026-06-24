@@ -12,13 +12,19 @@ SEC = "secondary-outline"
 
 
 class ScientificView(ttk.Frame):
-    def __init__(self, master: tk.Misc) -> None:
+    def __init__(self, master: tk.Misc, on_record=None) -> None:
         super().__init__(master, padding=10)
         self.engine = ScientificEngine()
+        self._on_record = on_record
         self._expr_var = tk.StringVar(value="")
         self._result_var = tk.StringVar(value="0")
         self._angle_var = tk.StringVar(value=self.engine.angle)
         self._build()
+
+    def load_expression(self, entry) -> None:
+        """Populate the entry field from a history entry (for re-use)."""
+        self._expr_var.set(entry.expression)
+        self._result_var.set("0")
 
     def _build(self) -> None:
         top = ttk.Frame(self)
@@ -128,7 +134,10 @@ class ScientificView(ttk.Frame):
 
     def _evaluate(self) -> None:
         self.engine.expression = self._expr_var.get()
-        self._result_var.set(self.engine.evaluate())
+        result = self.engine.evaluate()
+        self._result_var.set(result)
+        if self._on_record and not self.engine.error and self.engine.expression.strip():
+            self._on_record(self.engine.expression, result)
 
     def on_key(self, event: tk.Event) -> None:
         if event.keysym in ("Return", "KP_Enter"):

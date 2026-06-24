@@ -4,7 +4,7 @@ import tkinter as tk
 
 import ttkbootstrap as ttk
 
-from calc.modes.basic import CalculatorEngine
+from calc.modes.basic import CalculatorEngine, format_number
 
 _KEY_TO_DIGIT = set("0123456789")
 
@@ -20,13 +20,22 @@ FUNC = "info-outline"  # unary functions
 class BasicView(ttk.Frame):
     """Button grid + display wired to a CalculatorEngine."""
 
-    def __init__(self, master: tk.Misc) -> None:
+    def __init__(self, master: tk.Misc, on_record=None) -> None:
         super().__init__(master, padding=10)
         self.engine = CalculatorEngine()
+        self._on_record = on_record
         self._display_var = tk.StringVar(value="0")
         self._status_var = tk.StringVar(value="")
         self._build()
         self._refresh()
+
+    def _equals_and_record(self) -> None:
+        e = self.engine
+        a, op, b = e._accumulator, e._pending_op, e.current
+        e.equals()
+        if self._on_record and op is not None and not e.error:
+            expr = f"{format_number(a)} {op} {format_number(b)}"
+            self._on_record(expr, e.display)
 
     def _build(self) -> None:
         ttk.Label(
@@ -78,7 +87,7 @@ class BasicView(ttk.Frame):
                 ("1", lambda: e.input_digit("1"), NUM),
                 ("2", lambda: e.input_digit("2"), NUM),
                 ("3", lambda: e.input_digit("3"), NUM),
-                ("=", e.equals, EQ),
+                ("=", self._equals_and_record, EQ),
             ],
             [
                 ("±", e.negate, FUNC),
@@ -129,7 +138,7 @@ class BasicView(ttk.Frame):
         elif char == "%":
             self.engine.percent()
         elif key in ("Return", "equal", "KP_Enter"):
-            self.engine.equals()
+            self._equals_and_record()
         elif key == "BackSpace":
             self.engine.backspace()
         elif key == "Escape":
