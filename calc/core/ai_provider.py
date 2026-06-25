@@ -7,16 +7,39 @@ and any custom OpenAI-compatible or Anthropic server the user points it at.
 
 import base64
 import json
+import urllib.error
 import urllib.request
 
 _ANTHROPIC_VERSION = "2023-06-01"
 
 
+def _error_detail(body: str) -> str:
+    """Extract a human reason from an error response body (OpenAI/Gemini/Anthropic)."""
+    try:
+        data = json.loads(body)
+    except ValueError:
+        return body.strip()[:300]
+    if isinstance(data, list) and data:  # Gemini OpenAI-compat returns a list
+        data = data[0]
+    if isinstance(data, dict):
+        err = data.get("error", data)
+        msg = err.get("message") if isinstance(err, dict) else None
+        if msg:
+            return str(msg)[:400]
+    return body.strip()[:300]
+
+
 def _post(url: str, headers: dict, payload: dict, timeout: int) -> dict:
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=body, headers=headers, method="POST")
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        detail = _error_detail(e.read().decode("utf-8", "replace"))
+        raise ValueError(f"HTTP {e.code}: {detail}") from e
+    except urllib.error.URLError as e:
+        raise ValueError(f"연결 실패: {e.reason}") from e
 
 
 def _data_url(image_bytes: bytes) -> str:
@@ -79,7 +102,9 @@ def chat(
 
     try:
         data = _post(url, headers, payload, timeout)
-    except Exception as exc:  # network/HTTP/JSON
+    except ValueError:
+        raise  # already a clear HTTP/connection message from _post
+    except Exception as exc:
         raise ValueError(f"API 호출 실패: {exc}") from exc
     return _extract_text(config.kind, data)
 

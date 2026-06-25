@@ -55,6 +55,35 @@ def test_openai_payload(monkeypatch):
     assert captured["payload"]["messages"][0]["role"] == "system"
 
 
+def test_error_detail_formats():
+    # OpenAI / Anthropic: {"error": {"message": ...}}
+    assert "rate" in ai_provider._error_detail('{"error":{"message":"rate limit"}}')
+    # Gemini OpenAI-compat: a JSON array
+    body = '[{"error":{"code":429,"message":"quota exceeded, limit: 0"}}]'
+    assert "quota exceeded" in ai_provider._error_detail(body)
+    # non-JSON falls back to raw text
+    assert "boom" in ai_provider._error_detail("boom")
+
+
+def test_post_surfaces_http_error_body(monkeypatch):
+    import io
+    import urllib.error
+
+    def fake_urlopen(req, timeout=0):
+        raise urllib.error.HTTPError(
+            "u",
+            429,
+            "Too Many Requests",
+            {},
+            io.BytesIO(b'[{"error":{"message":"quota 0, limit: 0"}}]'),
+        )
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+    with pytest.raises(ValueError) as e:
+        ai_provider._post("http://x", {}, {}, 5)
+    assert "429" in str(e.value) and "quota 0" in str(e.value)
+
+
 def test_anthropic_payload(monkeypatch):
     captured = {}
 
