@@ -16,6 +16,7 @@
 - **경영지표(KPI)** — 수익성(ROE·ROA·이익률)·안정성(부채·유동비율)·활동성(회전율·CCC)·시장가치(PER·PBR·EPS)·사업성(BEP·EVA·EBITDA·CAGR)·원가/단가 등 약 35종
 - **단위환산** — 길이·무게·온도·면적·부피·시간·속도·데이터 + 압력·에너지·각도, 한국 전통 단위(평, 근·돈·관) 포함
 - **환율** — 실시간 통화 환산(30개 통화). [Frankfurter](https://frankfurter.dev)(ECB, 키 불필요·무료·무제한, 일 1회 갱신), 디스크 캐시로 오프라인 시 마지막 환율 사용
+- **AI** — 자연어·공식·LaTeX·이미지 → 공식 생성 → 변수 입력 → 결과. 프로바이더 사용자 설정(OpenAI·Gemini·Claude·로컬 Ollama·커스텀 OpenAI 호환). API 키는 로컬(`~/.calculator/ai_config.json`, 권한 600) 또는 환경변수에만 저장하며, 모델이 만든 식은 항상 안전 평가기(`safe_eval`)로만 계산
 - **기록** — 모든 계산을 저장(`~/.calculator/history.json`)하고, 결과·계산식을 다시 불러와 재실행
 
 라이트/다크 테마 토글(Anthropic 브랜드 팔레트) 지원.
