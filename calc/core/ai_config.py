@@ -22,7 +22,7 @@ PRESETS: dict[str, dict] = {
     "Gemini": {
         "kind": "openai",  # OpenAI-compatible endpoint
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
-        "model": "gemini-2.0-flash",
+        "model": "gemini-2.5-flash",  # 2.0-flash free tier is quota 0 on many accounts
         "env": "GEMINI_API_KEY",
     },
     "Claude": {
