@@ -11,6 +11,7 @@ from calc.core.history import HistoryStore
 from calc.ui.analysis_view import AnalysisView
 from calc.ui.basic_view import BasicView
 from calc.ui.cas_view import CASView
+from calc.ui.currency_view import CurrencyView
 from calc.ui.financial_view import FinancialView
 from calc.ui.graph_view import GraphView
 from calc.ui.history_view import HistoryView
@@ -90,6 +91,10 @@ def build_app() -> ttk.Window:
         notebook,
         on_record=lambda expr, res, inputs: history.record("CAS", expr, res, inputs),
     )
+    currency = CurrencyView(
+        notebook,
+        on_record=lambda expr, res, inputs: history.record("환율", expr, res, inputs),
+    )
     notebook.add(basic, text="기본")
     notebook.add(scientific, text="공학용")
     notebook.add(analysis, text="분석")
@@ -99,6 +104,7 @@ def build_app() -> ttk.Window:
     notebook.add(FinancialView(notebook), text="회계·재무")
     notebook.add(kpi, text="경영지표")
     notebook.add(unit, text="단위환산")
+    notebook.add(currency, text="환율")
 
     # History tab: re-load a past calculation into its mode.
     def load_entry(entry) -> None:
@@ -117,6 +123,9 @@ def build_app() -> ttk.Window:
         elif entry.mode == "CAS":
             cas.load(entry)
             notebook.select(cas)
+        elif entry.mode == "환율":
+            currency.load(entry)
+            notebook.select(currency)
         else:
             # Basic/scientific expressions re-load into the scientific entry field.
             scientific.load_expression(entry)
