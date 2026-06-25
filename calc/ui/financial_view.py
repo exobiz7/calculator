@@ -50,20 +50,29 @@ class FinancialView(ttk.Frame):
             row=4, column=0, columnspan=2, sticky="w", pady=(8, 0)
         )
 
-        def show(r):
+        def show(compute):
+            try:
+                r = compute()
+            except (ValueError, ZeroDivisionError) as e:
+                result.set(f"오류: {e}")
+                return
             result.set(f"공급가 {r.supply:,}  +  세액 {r.vat:,}  =  합계 {r.total:,}")
 
         ttk.Button(
             f,
             bootstyle="primary",
             text="공급가 → 합계 (TAX+)",
-            command=lambda: show(fin.add_vat(_to_float(amount), _to_float(rate))),
+            command=lambda: show(
+                lambda: fin.add_vat(_to_float(amount), _to_float(rate))
+            ),
         ).grid(row=2, column=0, columnspan=2, sticky="we", pady=2)
         ttk.Button(
             f,
             bootstyle="primary",
             text="합계 → 공급가 (TAX−)",
-            command=lambda: show(fin.remove_vat(_to_float(amount), _to_float(rate))),
+            command=lambda: show(
+                lambda: fin.remove_vat(_to_float(amount), _to_float(rate))
+            ),
         ).grid(row=3, column=0, columnspan=2, sticky="we", pady=2)
         f.columnconfigure(1, weight=1)
         return f
@@ -79,37 +88,51 @@ class FinancialView(ttk.Frame):
             row=7, column=0, columnspan=2, sticky="w", pady=(8, 0)
         )
 
+        def run(make_text):
+            try:
+                result.set(make_text())
+            except (ValueError, ZeroDivisionError) as e:
+                result.set(f"오류: {e}")
+
         ttk.Button(
             f,
             bootstyle="primary",
             text="판매가 = 원가+마진율",
-            command=lambda: result.set(
-                f"판매가 {fin.sell_from_cost_margin(_to_float(cost), _to_float(rate)):,}"
+            command=lambda: run(
+                lambda: (
+                    f"판매가 {fin.sell_from_cost_margin(_to_float(cost), _to_float(rate)):,}"
+                )
             ),
         ).grid(row=3, column=0, columnspan=2, sticky="we", pady=2)
         ttk.Button(
             f,
             bootstyle="primary",
             text="판매가 = 원가+마크업율",
-            command=lambda: result.set(
-                f"판매가 {fin.sell_from_cost_markup(_to_float(cost), _to_float(rate)):,}"
+            command=lambda: run(
+                lambda: (
+                    f"판매가 {fin.sell_from_cost_markup(_to_float(cost), _to_float(rate)):,}"
+                )
             ),
         ).grid(row=4, column=0, columnspan=2, sticky="we", pady=2)
         ttk.Button(
             f,
             bootstyle="primary",
             text="마진율 (원가,판매가)",
-            command=lambda: result.set(
-                f"마진율 {fin.margin_rate(_to_float(cost), _to_float(sell)):.2f}%  /  "
-                f"마크업율 {fin.markup_rate(_to_float(cost), _to_float(sell)):.2f}%"
+            command=lambda: run(
+                lambda: (
+                    f"마진율 {fin.margin_rate(_to_float(cost), _to_float(sell)):.2f}%  /  "
+                    f"마크업율 {fin.markup_rate(_to_float(cost), _to_float(sell)):.2f}%"
+                )
             ),
         ).grid(row=5, column=0, columnspan=2, sticky="we", pady=2)
         ttk.Button(
             f,
             bootstyle="primary",
             text="할인가 (판매가 − 율%)",
-            command=lambda: result.set(
-                f"할인가 {fin.apply_discount(_to_float(sell), _to_float(rate)):,}"
+            command=lambda: run(
+                lambda: (
+                    f"할인가 {fin.apply_discount(_to_float(sell), _to_float(rate)):,}"
+                )
             ),
         ).grid(row=6, column=0, columnspan=2, sticky="we", pady=2)
         f.columnconfigure(1, weight=1)
@@ -156,7 +179,7 @@ class FinancialView(ttk.Frame):
                     )
                     i.set(f"{val:.6f}")
                 result.set(f"{target} = {val:,.4f}")
-            except ValueError as e:
+            except (ValueError, ZeroDivisionError) as e:
                 result.set(f"오류: {e}")
 
         for c, t in enumerate(["n", "i", "PV", "PMT", "FV"]):
@@ -191,7 +214,7 @@ class FinancialView(ttk.Frame):
                 rows = fin.amortization_schedule(
                     _to_float(principal), _to_float(rate), int(_to_float(months))
                 )
-            except (ValueError, TypeError) as e:
+            except (ValueError, TypeError, ZeroDivisionError) as e:
                 summary.set(f"오류: {e}")
                 return
             total_interest = sum(r.interest for r in rows)
@@ -236,7 +259,7 @@ class FinancialView(ttk.Frame):
             try:
                 y = ratio.solve_simple(_to_float(a), _to_float(b), _to_float(x))
                 simple_result.set(f"y = {y:g}")
-            except ValueError as e:
+            except (ValueError, ZeroDivisionError) as e:
                 simple_result.set(f"오류: {e}")
 
         ttk.Button(f, bootstyle="primary", text="y 계산", command=solve_simple).grid(
@@ -266,7 +289,7 @@ class FinancialView(ttk.Frame):
                     _to_float(ta), _to_float(tb), _to_float(tc), _to_float(tx)
                 )
                 triple_result.set(f"y = {y:g},  z = {z:g}")
-            except ValueError as e:
+            except (ValueError, ZeroDivisionError) as e:
                 triple_result.set(f"오류: {e}")
 
         ttk.Button(f, bootstyle="primary", text="y, z 계산", command=solve_triple).grid(
