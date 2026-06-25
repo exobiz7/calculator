@@ -14,7 +14,7 @@ Shared ``app`` fixture and widget helpers live in ``conftest``.
 
 import pytest
 import ttkbootstrap as ttk
-from conftest import iter_widgets
+from ui_smoke import iter_widgets
 
 from calc.ui.analysis_view import AnalysisView
 from calc.ui.financial_view import FinancialView
